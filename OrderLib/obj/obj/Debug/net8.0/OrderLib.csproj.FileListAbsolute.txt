@@ -1,0 +1,6 @@
+C:\Users\dimta\OneDrive\Documents\C#\Order\OrderLib\obj\obj\Debug\net8.0\OrderLib.csproj.AssemblyReference.cache
+C:\Users\dimta\OneDrive\Documents\C#\Order\OrderLib\obj\obj\Debug\net8.0\OrderLib.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\dimta\OneDrive\Documents\C#\Order\OrderLib\obj\obj\Debug\net8.0\OrderLib.AssemblyInfoInputs.cache
+C:\Users\dimta\OneDrive\Documents\C#\Order\OrderLib\obj\obj\Debug\net8.0\OrderLib.AssemblyInfo.cs
+C:\Users\dimta\OneDrive\Documents\C#\Order\OrderLib\obj\obj\Debug\net8.0\OrderLib.csproj.CoreCompileInputs.cache
+C:\Users\dimta\OneDrive\Documents\C#\Order\OrderLib\obj\obj\Debug\net8.0\OrderLib.sourcelink.json
