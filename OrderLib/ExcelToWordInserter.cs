@@ -20,11 +20,11 @@ namespace OrderLib
                 if (worksheet == null) throw new InvalidOperationException("No worksheet found in Excel file");
 
                 using var doc = WordprocessingDocument.Open(wordPath, true);
-                var body = doc.MainDocumentPart?.Document?.Body;
-                if (body == null) throw new InvalidOperationException("Invalid Word document structure");
+                var mainPart = doc.MainDocumentPart ?? doc.AddMainDocumentPart();
+                mainPart.Document = mainPart.Document ?? new Document(new Body());
+                var body = mainPart.Document.Body ?? new Body();
 
                 var table = new Table();
-
                 foreach (var row in worksheet.RangeUsed().Rows())
                 {
                     var wordRow = new TableRow();
@@ -36,9 +36,8 @@ namespace OrderLib
                     }
                     if (wordRow.ChildElements.Count > 0) table.Append(wordRow);
                 }
-
                 body.Append(table);
-                doc.MainDocumentPart.Document.Save();
+                mainPart.Document.Save();
             }
             catch (IOException ex)
             {
