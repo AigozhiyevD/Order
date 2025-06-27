@@ -3,17 +3,22 @@ using OrderLib;
 
 class Program
 {
-    static void Main(string[] args)
+    static void Main()
     {
+        var processor = new OrderProcessor();
+
+        string pathToExcel = @"C:\Путь\к\файлу.xlsx";
+        string pathToXml = @"C:\Путь\к\файлу.xml";
+        string outputWord = @"C:\Путь\куда\сохранить.docx";
+
         try
         {
-            var processor = new OrderProcessor();
-            processor.Process("input.xlsx", "output.docx", "input.xml");
-            Console.WriteLine("Processing completed successfully.");
+            processor.Process(pathToExcel, outputWord, pathToXml);
+            Console.WriteLine("Обработка завершена успешно!");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine("Произошла ошибка: " + ex.Message);
         }
     }
 }
