@@ -1,6 +1,5 @@
-using System;
-using System.IO;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 
@@ -12,37 +11,49 @@ namespace OrderLib
         {
             if (!File.Exists(excelPath)) throw new FileNotFoundException("Excel file not found", excelPath);
             if (!File.Exists(wordPath)) throw new FileNotFoundException("Word file not found", wordPath);
+            using var workbook = new XLWorkbook(excelPath);
+            var worksheet = workbook.Worksheets.Worksheet(1);
 
-            try
+            using var doc = WordprocessingDocument.Open(wordPath, true);
+            var body = doc.MainDocumentPart.Document.Body;
+
+            var table = new Table();
+
+            // Apply a table style (default Word table style)
+            TableProperties tblProps = new TableProperties(
+                new TableBorders(
+                    new TopBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
+                    new BottomBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
+                    new LeftBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
+                    new RightBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
+                    new InsideHorizontalBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 },
+                    new InsideVerticalBorder { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 6 }
+                )
+            );
+            table.AppendChild(tblProps);
+
+            bool isFirstRow = true;
+            foreach (var row in worksheet.RangeUsed().Rows())
             {
-                using var workbook = new XLWorkbook(excelPath);
-                var worksheet = workbook.Worksheets.Worksheet(1);
-                if (worksheet == null) throw new InvalidOperationException("No worksheet found in Excel file");
-
-                using var doc = WordprocessingDocument.Open(wordPath, true);
-                var mainPart = doc.MainDocumentPart ?? doc.AddMainDocumentPart();
-                mainPart.Document = mainPart.Document ?? new Document(new Body());
-                var body = mainPart.Document.Body ?? new Body();
-
-                var table = new Table();
-                foreach (var row in worksheet.RangeUsed().Rows())
+                var wordRow = new TableRow();
+                foreach (var cell in row.Cells())
                 {
-                    var wordRow = new TableRow();
-                    foreach (var cell in row.Cells())
+                    Run run = new Run(new Text(cell.GetValue<string>()));
+
+                    if (isFirstRow)
                     {
-                        if (cell == null || cell.GetString() == null) continue;
-                        var wordCell = new TableCell(new Paragraph(new Run(new Text(cell.GetString()))));
-                        wordRow.Append(wordCell);
+                        run.RunProperties = new RunProperties(new Bold());
                     }
-                    if (wordRow.ChildElements.Count > 0) table.Append(wordRow);
+
+                    var wordCell = new TableCell(new Paragraph(run));
+                    wordRow.Append(wordCell);
                 }
-                body.Append(table);
-                mainPart.Document.Save();
+                table.Append(wordRow);
+                isFirstRow = false;
             }
-            catch (IOException ex)
-            {
-                throw new IOException("Error inserting Excel data into Word: " + ex.Message, ex);
-            }
+
+            body.Append(table);
+            doc.MainDocumentPart.Document.Save();
         }
     }
 }

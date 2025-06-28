@@ -3,14 +3,23 @@ using OrderLib;
 
 class Program
 {
-    static void Main()
+    static void Main(string [] args)
     {
+        foreach (var arg in args)
+        {
+            Console.WriteLine();
+        }
+        if (args.Length != 3)
+        {
+            Console.WriteLine("Not enough args provided");
+            return;
+        }
+        
         var processor = new OrderProcessor();
 
-        string pathToExcel = @"C:\Путь\к\файлу.xlsx";
-        string pathToXml = @"C:\Путь\к\файлу.xml";
-        string outputWord = @"C:\Путь\куда\сохранить.docx";
-
+        string pathToExcel = args[2];
+        string pathToXml = args[1];
+        string outputWord = args[0];
         try
         {
             processor.Process(pathToExcel, outputWord, pathToXml);

@@ -1,23 +1,23 @@
-using System;
-using System.IO;
-using OrderLib;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace OrderLib
 {
     public class OrderProcessor
     {
-        private readonly XmlParser _xmlParser;
+        private readonly TxtReader _xmlParser;
         private readonly ExcelToWordInserter _excelInserter;
-        private readonly WordWriter _writer;
+        private readonly WordTexter _writer;
 
-        public OrderProcessor(XmlParser xmlParser, ExcelToWordInserter excelInserter, WordWriter writer)
+        public OrderProcessor(TxtReader xmlParser, ExcelToWordInserter excelInserter, WordTexter writer)
         {
             _xmlParser = xmlParser ?? throw new ArgumentNullException(nameof(xmlParser));
             _excelInserter = excelInserter ?? throw new ArgumentNullException(nameof(excelInserter));
             _writer = writer ?? throw new ArgumentNullException(nameof(writer));
         }
 
-        public OrderProcessor() : this(new XmlParser(), new ExcelToWordInserter(), new WordWriter())
+        public OrderProcessor() : this(new TxtReader(), new ExcelToWordInserter(), new WordTexter())
         {
         }
 
@@ -29,7 +29,7 @@ namespace OrderLib
             try
             {
                 string textContent = _xmlParser.GetText(inputXml) ?? string.Empty;
-
+                
                 _writer.CreateWordWithText(outputWord, textContent);
 
                 _excelInserter.Insert(inputExcel, outputWord);
@@ -44,16 +44,42 @@ namespace OrderLib
             }
         }
     }
-    public class XmlParser
+    public class TxtReader
     {
         public string GetText(string inputXml) => File.ReadAllText(inputXml); 
     }
 
-    public class WordWriter
+    public class WordTexter
     {
         public void CreateWordWithText(string outputWord, string textContent)
         {
-            File.WriteAllText(outputWord, textContent);
+            // Ensure output path ends with .docx
+            if (!outputWord.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+            {
+                outputWord += ".docx";
+            }
+
+            try
+            {
+                // Create or overwrite the Word document
+                using (WordprocessingDocument wordDoc = WordprocessingDocument.Create(outputWord, WordprocessingDocumentType.Document))
+                {
+                    // Add main document part
+                    MainDocumentPart mainPart = wordDoc.AddMainDocumentPart();
+                    mainPart.Document = new Document();
+                    Body body = mainPart.Document.AppendChild(new Body());
+
+                    // Add paragraph with text
+                    Paragraph para = body.AppendChild(new Paragraph());
+                    Run run = para.AppendChild(new Run());
+                    run.AppendChild(new Text(textContent));
+                    wordDoc.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error creating Word document: " + ex.Message, ex);
+            }
         }
     }
 }
